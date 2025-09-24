@@ -1,3 +1,10 @@
+# app/ui_streamlit.py
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import os
 import time
 import re
@@ -8,13 +15,16 @@ from app.query_multi import ask_router, ask_consensus, LLM_MODELS, JUDGE_MODEL
 from app.ingest import main as ingest_main, DATA_DIR
 from app.incremental_ingest import main as incr_main
 
-st.set_page_config(page_title="CosmoMinds Chatbot", page_icon="../../untitled folder 4/Cosmo-Minds-Nasa-Space-App-Challenge/public/como.png")
+# --- Safe page icon setup (won't crash if missing) ---
+ICON_PATH = Path(__file__).resolve().parents[2] / "untitled folder 4" / "Cosmo-Minds-Nasa-Space-App-Challenge" / "public" / "como.png"
+page_icon = str(ICON_PATH) if ICON_PATH.exists() else None
+
+st.set_page_config(page_title="CosmoMinds Chatbot", page_icon=page_icon)
 
 st.title("Ask any question about Terra — hope I can help you")
 st.caption("OCR + incremental ingest + multi-model router/consensus")
 
 # ---------- Fancy source rendering helpers ----------
-
 def highlight_snippet(snippet: str, query: str) -> str:
     """Highlight query terms in the snippet using <mark>."""
     terms = [t for t in re.findall(r"\w+", (query or "")) if len(t) > 2]
@@ -52,7 +62,6 @@ def source_card(src: dict, query: str):
     </div>
     """
     st.markdown(card_html, unsafe_allow_html=True)
-
 # ----------------------------------------------------
 
 with st.sidebar:
@@ -85,20 +94,29 @@ top_k = st.slider("Top-K passages", min_value=3, max_value=12, value=int(os.gete
 mode = st.radio("Mode", options=["off", "router", "consensus"], index=0, horizontal=True)
 models_default = [m for m in LLM_MODELS][:3]
 models_sel = st.multiselect("Models (for router/consensus)", options=LLM_MODELS, default=models_default)
-judge_default = JUDGE_MODEL if JUDGE_MODEL in LLM_MODELS else (LLM_MODELS[0] if LLM_MODELS else "")
-judge_sel = st.selectbox("Judge model (consensus)", options=LLM_MODELS, index=(LLM_MODELS.index(judge_default) if judge_default in LLM_MODELS else 0))
+
+# Only show judge selector if in consensus mode
+if mode == "consensus":
+    judge_default = JUDGE_MODEL if JUDGE_MODEL in LLM_MODELS else (LLM_MODELS[0] if LLM_MODELS else "")
+    judge_sel = st.selectbox("Judge model (consensus)", options=LLM_MODELS, index=(LLM_MODELS.index(judge_default) if judge_default in LLM_MODELS else 0))
+else:
+    judge_sel = None
 
 if st.button("Ask") and q.strip():
     with st.spinner("Thinking..."):
-        if mode == "router":
-            res = ask_router(q, k=top_k, models=models_sel or None)
-        elif mode == "consensus":
-            res = ask_consensus(q, k=top_k, models=models_sel or None, judge_model=judge_sel)
-        else:
-            res = ask_single(q, k=top_k)
+        try:
+            if mode == "router":
+                res = ask_router(q, k=top_k, models=models_sel or None)
+            elif mode == "consensus":
+                res = ask_consensus(q, k=top_k, models=models_sel or None, judge_model=judge_sel)
+            else:
+                res = ask_single(q, k=top_k)
+        except Exception as e:
+            st.error(f"Backend error: {e}")
+            raise
 
     st.subheader("Answer")
-    st.write(res["answer"])
+    st.write(res.get("answer", "(no answer)"))
 
     # ✨ Fancy Sources
     if res.get("sources"):
