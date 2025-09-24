@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-dotenv
+pypdf
+faiss-cpu
+numpy
+requests
+tqdm
+pydantic>=2
+pillow
+pdf2image
+pytesseract
+streamlit
