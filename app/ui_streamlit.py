@@ -1,4 +1,3 @@
-# app/ui_streamlit.py
 import sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +14,6 @@ from app.query_multi import ask_router, ask_consensus, LLM_MODELS, JUDGE_MODEL
 from app.ingest import main as ingest_main, DATA_DIR
 from app.incremental_ingest import main as incr_main
 
-# --- Safe page icon setup (won't crash if missing) ---
 ICON_PATH = Path(__file__).resolve().parents[2] / "untitled folder 4" / "Cosmo-Minds-Nasa-Space-App-Challenge" / "public" / "como.png"
 page_icon = str(ICON_PATH) if ICON_PATH.exists() else None
 
@@ -24,22 +22,18 @@ st.set_page_config(page_title="CosmoMinds Chatbot", page_icon=page_icon)
 st.title("Ask any question about Terra — hope I can help you")
 st.caption("OCR + incremental ingest + multi-model router/consensus")
 
-# ---------- Fancy source rendering helpers ----------
 def highlight_snippet(snippet: str, query: str) -> str:
-    """Highlight query terms in the snippet using <mark>."""
     terms = [t for t in re.findall(r"\w+", (query or "")) if len(t) > 2]
     if not terms:
         return snippet
     def repl(m):
         return f"<mark>{m.group(0)}</mark>"
     out = snippet
-    # longer terms first to avoid nested/overlapping markup weirdness
     for t in sorted(set(terms), key=len, reverse=True):
         out = re.sub(rf"(?i)\b{re.escape(t)}\b", repl, out)
     return out
 
 def source_card(src: dict, query: str):
-    """Render a pretty card for a single source."""
     doc = src.get("doc", "")
     page = src.get("page", "")
     path = src.get("path", "")
@@ -62,7 +56,6 @@ def source_card(src: dict, query: str):
     </div>
     """
     st.markdown(card_html, unsafe_allow_html=True)
-# ----------------------------------------------------
 
 with st.sidebar:
     st.header("Ingestion")
@@ -95,7 +88,6 @@ mode = st.radio("Mode", options=["off", "router", "consensus"], index=0, horizon
 models_default = [m for m in LLM_MODELS][:3]
 models_sel = st.multiselect("Models (for router/consensus)", options=LLM_MODELS, default=models_default)
 
-# Only show judge selector if in consensus mode
 if mode == "consensus":
     judge_default = JUDGE_MODEL if JUDGE_MODEL in LLM_MODELS else (LLM_MODELS[0] if LLM_MODELS else "")
     judge_sel = st.selectbox("Judge model (consensus)", options=LLM_MODELS, index=(LLM_MODELS.index(judge_default) if judge_default in LLM_MODELS else 0))
@@ -118,7 +110,6 @@ if st.button("Ask") and q.strip():
     st.subheader("Answer")
     st.write(res.get("answer", "(no answer)"))
 
-    # ✨ Fancy Sources
     if res.get("sources"):
         st.subheader("Sources")
         for src in res["sources"]:

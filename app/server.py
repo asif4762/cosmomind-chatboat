@@ -19,8 +19,8 @@ app.add_middleware(
 class AskRequest(BaseModel):
     question: str
     top_k: Optional[int] = None
-    mode: Optional[str] = None          # off | router | consensus
-    models: Optional[List[str]] = None  # e.g., ["llama3.1:8b","gemma2:9b","mistral:7b"]
+    mode: Optional[str] = None          
+    models: Optional[List[str]] = None  
     judge_model: Optional[str] = None
 
 class AskResponse(BaseModel):
@@ -37,6 +37,5 @@ async def ask_api(req: AskRequest):
     if mode == "consensus":
         res = ask_consensus(req.question, k=k, models=req.models, judge_model=req.judge_model)
         return AskResponse(answer=res["answer"], sources=res["sources"])
-    # default single-model behavior (uses LLM_MODEL from env)
     res = ask_single(req.question, k=k)
     return AskResponse(answer=res["answer"], sources=res["sources"])

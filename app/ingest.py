@@ -138,7 +138,7 @@ def main():
     vecs = l2_normalize(vecs)
 
     dim = vecs.shape[1]
-    index = faiss.IndexFlatIP(dim)  # cosine similarity after L2 norm
+    index = faiss.IndexFlatIP(dim) 
     index.add(vecs)
 
     faiss.write_index(index, str(STORE_DIR / "index.faiss"))

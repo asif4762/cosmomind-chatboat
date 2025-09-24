@@ -19,10 +19,8 @@ def route_model(question: str, models: List[str] = None) -> str:
     q = question.lower()
     long_q = len(question) > 220
     complex_terms = any(t in q for t in ["compare","contrast","trade-off","why","how","analyz","synthesize","across","multiple","summarize thoroughly"])
-    # Simple heuristic: if long or complex, prefer the second model if available
     if (long_q or complex_terms) and len(models) >= 2:
         return models[1]
-    # Default to first
     return models[0]
 
 def ask_router(question: str, k: int = TOP_K, models: List[str] = None) -> dict:
@@ -33,18 +31,14 @@ def ask_consensus(question: str, k: int = TOP_K, models: List[str] = None, judge
     models = models or LLM_MODELS[:3]
     judge_model = judge_model or JUDGE_MODEL
     client = OllamaClient()
-
-    # Retrieve once
     retrieved, _ = retrieve(question, client, k=k)
     messages, sources = make_prompt(question, retrieved)
 
-    # Ask each model
     candidates: List[Dict] = []
     for m in models:
         ans = client.chat(model=m, messages=messages)
         candidates.append({"model": m, "answer": ans})
 
-    # Build judge prompt
     cand_lines = []
     for i, c in enumerate(candidates, start=1):
         cand_lines.append(f"[Candidate {i} — {c['model']}]\n{c['answer']}")

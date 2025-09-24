@@ -34,19 +34,13 @@ def l2_normalize(x: np.ndarray) -> np.ndarray:
 
 
 def retrieve(question: str, client: OllamaClient, k: int = TOP_K) -> Tuple[List[Dict], List[int]]:
-    """Hybrid-lite retrieval: FAISS dense recall -> keyword re-rank."""
-    # 1) embed query
     qv = np.array([client.embed(question, EMBED_MODEL)], dtype="float32")
     qv = l2_normalize(qv)
-
-    # 2) search many candidates
     index, chunks = load_index_and_chunks()
     CAND_MULT = 6
     sims, idxs = index.search(qv, k * CAND_MULT)
     idxs = idxs[0].tolist()
     faiss_scores = sims[0].tolist()
-
-    # 3) simple keyword score
     tokens = re.findall(r"\w+", question.lower())
     def kw_score(text: str):
         t = text.lower()
@@ -55,7 +49,7 @@ def retrieve(question: str, client: OllamaClient, k: int = TOP_K) -> Tuple[List[
     candidates = []
     for i, s in zip(idxs, faiss_scores):
         rec = chunks[i]
-        score = 0.75 * float(s) + 0.25 * float(kw_score(rec["text"]))  # weight blend
+        score = 0.75 * float(s) + 0.25 * float(kw_score(rec["text"])) 
         candidates.append((score, rec, i))
 
     candidates.sort(key=lambda x: x[0], reverse=True)
@@ -66,7 +60,6 @@ def retrieve(question: str, client: OllamaClient, k: int = TOP_K) -> Tuple[List[
 
 
 def make_prompt(question: str, retrieved: List[Dict]) -> Tuple[list[dict], list[dict]]:
-    # Build numbered context blocks and rich sources (with snippet + path)
     ctx_lines = []
     sources = []
     for i, rec in enumerate(retrieved, start=1):
