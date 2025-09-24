@@ -20,7 +20,7 @@ page_icon = str(ICON_PATH) if ICON_PATH.exists() else None
 st.set_page_config(page_title="CosmoMinds Chatbot", page_icon=page_icon)
 
 st.title("Ask any question about Terra — hope I can help you")
-st.caption("OCR + incremental ingest + multi-model router/consensus")
+# st.caption("OCR + incremental ingest + multi-model router/consensus")
 
 def highlight_snippet(snippet: str, query: str) -> str:
     terms = [t for t in re.findall(r"\w+", (query or "")) if len(t) > 2]
@@ -57,51 +57,51 @@ def source_card(src: dict, query: str):
     """
     st.markdown(card_html, unsafe_allow_html=True)
 
-with st.sidebar:
-    st.header("Ingestion")
-    st.write("Upload PDFs to add them into the `data/` folder.")
-    uploaded = st.file_uploader("Upload PDFs", type=["pdf"], accept_multiple_files=True)
-    if uploaded:
-        for f in uploaded:
-            path = DATA_DIR / f.name
-            with open(path, "wb") as out:
-                out.write(f.read())
-        st.success(f"Saved {len(uploaded)} file(s) to data/")
+# with st.sidebar:
+#     st.header("Ingestion")
+#     st.write("Upload PDFs to add them into the `data/` folder.")
+#     uploaded = st.file_uploader("Upload PDFs", type=["pdf"], accept_multiple_files=True)
+#     if uploaded:
+#         for f in uploaded:
+#             path = DATA_DIR / f.name
+#             with open(path, "wb") as out:
+#                 out.write(f.read())
+#         st.success(f"Saved {len(uploaded)} file(s) to data/")
 
-    if st.button("🔁 Full Rebuild Index"):
-        with st.spinner("Full ingest..."):
-            start = time.time()
-            ingest_main()
-            st.success(f"Done in {time.time()-start:.1f}s")
+#     if st.button("🔁 Full Rebuild Index"):
+#         with st.spinner("Full ingest..."):
+#             start = time.time()
+#             ingest_main()
+#             st.success(f"Done in {time.time()-start:.1f}s")
 
-    if st.button("➕ Incremental Ingest (Add Only)"):
-        with st.spinner("Embedding only NEW chunks..."):
-            start = time.time()
-            incr_main()
-            st.success(f"Done in {time.time()-start:.1f}s")
+#     if st.button("➕ Incremental Ingest (Add Only)"):
+#         with st.spinner("Embedding only NEW chunks..."):
+#             start = time.time()
+#             incr_main()
+#             st.success(f"Done in {time.time()-start:.1f}s")
 
-st.header("Ask a question")
+# st.header("Ask a question")
 q = st.text_input("Your question", placeholder="e.g., Summarize procurement rules across the PDFs.")
 top_k = st.slider("Top-K passages", min_value=3, max_value=12, value=int(os.getenv("TOP_K", "5")), step=1)
 
-mode = st.radio("Mode", options=["off", "router", "consensus"], index=0, horizontal=True)
-models_default = [m for m in LLM_MODELS][:3]
-models_sel = st.multiselect("Models (for router/consensus)", options=LLM_MODELS, default=models_default)
+# mode = st.radio("Mode", options=["off", "router", "consensus"], index=0, horizontal=True)
+# models_default = [m for m in LLM_MODELS][:3]
+# models_sel = st.multiselect("Models (for router/consensus)", options=LLM_MODELS, default=models_default)
 
-if mode == "consensus":
-    judge_default = JUDGE_MODEL if JUDGE_MODEL in LLM_MODELS else (LLM_MODELS[0] if LLM_MODELS else "")
-    judge_sel = st.selectbox("Judge model (consensus)", options=LLM_MODELS, index=(LLM_MODELS.index(judge_default) if judge_default in LLM_MODELS else 0))
-else:
-    judge_sel = None
+# if mode == "consensus":
+#     judge_default = JUDGE_MODEL if JUDGE_MODEL in LLM_MODELS else (LLM_MODELS[0] if LLM_MODELS else "")
+#     judge_sel = st.selectbox("Judge model (consensus)", options=LLM_MODELS, index=(LLM_MODELS.index(judge_default) if judge_default in LLM_MODELS else 0))
+# else:
+#     judge_sel = None
 
 if st.button("Ask") and q.strip():
     with st.spinner("Thinking..."):
         try:
-            if mode == "router":
-                res = ask_router(q, k=top_k, models=models_sel or None)
-            elif mode == "consensus":
-                res = ask_consensus(q, k=top_k, models=models_sel or None, judge_model=judge_sel)
-            else:
+            # if mode == "router":
+            #     res = ask_router(q, k=top_k, models=models_sel or None)
+            # elif mode == "consensus":
+            #     res = ask_consensus(q, k=top_k, models=models_sel or None, judge_model=judge_sel)
+            # else:
                 res = ask_single(q, k=top_k)
         except Exception as e:
             st.error(f"Backend error: {e}")
@@ -110,7 +110,7 @@ if st.button("Ask") and q.strip():
     st.subheader("Answer")
     st.write(res.get("answer", "(no answer)"))
 
-    if res.get("sources"):
-        st.subheader("Sources")
-        for src in res["sources"]:
-            source_card(src, q)
+    # if res.get("sources"):
+    #     st.subheader("Sources")
+    #     for src in res["sources"]:
+    #         source_card(src, q)

@@ -2,7 +2,7 @@
   "embedding_model": "nomic-embed-text",
   "chunk_size": 1200,
   "chunk_overlap": 200,
-  "vector_count": 1073,
+  "vector_count": 1086,
   "vector_dim": 768,
   "ocr_mode": "auto",
   "ocr_langs": "eng"
