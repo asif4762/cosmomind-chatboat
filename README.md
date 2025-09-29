@@ -1,4 +1,4 @@
-```markdown
+
 # PDF‑QA with Ollama (Llama 3.1:8B) — OCR + UI + Incremental + Multi‑Model (v4)
 
 Local RAG over your PDFs with:
@@ -15,20 +15,19 @@ Local RAG over your PDFs with:
 
 ### Configure models in `.env`
 ```
-
 LLM_MODEL=llama3.1:8b
 LLM_MODELS=llama3.1:8b,gemma2:9b,mistral:7b
 ENSEMBLE_MODE=off     # or router / consensus
 JUDGE_MODEL=llama3.1:8b
+```
 
-````
 Pull them with:
 ```bash
 ollama pull llama3.1:8b
 ollama pull gemma2:9b
 ollama pull mistral:7b
 ollama pull nomic-embed-text
-````
+```
 
 ### Summarizer Setup
 
@@ -53,7 +52,6 @@ streamlit run app/ui_streamlit.py
 ### Server API additions
 
 `POST /ask` now accepts optional fields:
-
 ```json
 {
   "question": "string",
@@ -65,7 +63,6 @@ streamlit run app/ui_streamlit.py
 ```
 
 For **Summarizer**, use `POST /summarize`:
-
 ```json
 {
   "text": "string",
@@ -75,13 +72,11 @@ For **Summarizer**, use `POST /summarize`:
 ```
 
 ## Notes
-
-* Router is simple heuristics; tune in `app/query_multi.py`.
-* Consensus asks each model with the **same retrieved context**, then a judge writes the final answer with citations. If context lacks the info, it must return `I don't know from these PDFs.`
-* If a model isn't pulled, Ollama will error; just remove it from `LLM_MODELS`.
-* **Summarizer** requires the `requests` and `beautifulsoup4` libraries for fetching and parsing websites.
+- Router is simple heuristics; tune in `app/query_multi.py`.
+- Consensus asks each model with the **same retrieved context**, then a judge writes the final answer with citations. If context lacks the info, it must return `I don't know from these PDFs.`
+- If a model isn't pulled, Ollama will error; just remove it from `LLM_MODELS`.
+- **Summarizer** requires the `requests` and `beautifulsoup4` libraries for fetching and parsing websites.
 
 ### Summarizer Features
-
-* **Summarize Websites**: Provide a URL, and the summarizer will generate a short, concise summary of the content.
-* **Summarize Text**: Paste text, and the summarizer will condense it into a summary for easy digestion.
+- **Summarize Websites**: Provide a URL, and the summarizer will generate a short, concise summary of the content.
+- **Summarize Text**: Paste text, and the summarizer will condense it into a summary for easy digestion.
